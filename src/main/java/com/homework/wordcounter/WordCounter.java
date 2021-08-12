@@ -1,35 +1,22 @@
 package com.homework.wordcounter;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class WordCounter {
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
         String filePath = args[0];
         File file = new File(filePath);
-        Scanner scanner = new Scanner(new InputStreamReader(new FileInputStream(file)));
-
-        Map<String, Integer> words = new HashMap<>();
-
-        while (scanner.hasNext()) {
-            String word = scanner.next();
-            if (words.containsKey(word)) {
-                words.put(word, words.get(word) + 1);
-            } else {
-                words.put(word, 1);
-            }
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            reader
+                    .lines()
+                    .flatMap(n -> Arrays.stream(n.split("(?U)\\W")))
+                    .map(n -> n.toLowerCase(Locale.ROOT))
+                    .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                    .entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .limit(10)
+                    .forEach(System.out::println);
         }
-
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(words.entrySet());
-        entries.sort(Map.Entry.comparingByValue());
-
-        int top = 10;
-        int index = entries.size() - 1;
-        while (top > 0 && index > 0) {
-            Map.Entry<String, Integer> entry = entries.get(index);
-            System.out.printf("%s: %d\n", entry.getKey(), entry.getValue());
-            top--;
-            index--;
-        }
-
     }
 }
